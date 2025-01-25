@@ -193,8 +193,9 @@ start:
           int d = GetMaxScore("Data/score.txt");
           score = std::max(score, d);
           Read(score_data, score);
-          std::ofstream coin("Data/coin.txt", std::ios::app);
+          std::ofstream coins("Data/coin.txt", std::ios::app);
           Read(all_score_data, score);
+          Read(coins, coin);
           Exit();
         } else if ((posMouse.x > 20 && posMouse.x < 60) &&
                    (posMouse.y > 740 && posMouse.y < 800)) {
@@ -250,19 +251,21 @@ start:
       DrawText(coin_massage.c_str(), 750, 20, 30, YELLOW);
       Color Back_Ground = BLACK;
       Vector2 mousePos = GetMousePosition();
-      if (mousePos.x > 0 && mousePos.x < 130 && mousePos.y > 10 && mousePos.y < 210) {
+      if (mousePos.x > 0 && mousePos.x < 130 && mousePos.y > 10 &&
+          mousePos.y < 210) {
         Back_Ground = RED;
         DrawText("100 COIN", 140, 105, 30, YELLOW);
       }
       if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        if (mousePos.x > 0 && mousePos.x < 130 && mousePos.y > 10 && mousePos.y < 210) {
+        if (mousePos.x > 0 && mousePos.x < 130 && mousePos.y > 10 &&
+            mousePos.y < 210) {
           if (coin > 100) {
             coin -= 100;
             Back_Ground = GREEN;
           } else {
             PlaySound(sound);
           }
-        } 
+        }
       }
       DrawRectangle(0, 10, 130, 200, Back_Ground);
       DrawTexture(txt4, -35, 30, WHITE);
@@ -307,12 +310,12 @@ start:
         inmenu = true;
         isgameover = false;
         std::ofstream all_score_data("Data/all_score.txt", std::ios::app);
-        std::ofstream coin("Data/coin.txt", std::ios::app);
+        std::ofstream coins("Data/coin.txt", std::ios::app);
         Read(all_score_data, score);
         int d = GetMaxScore("Data/score.txt");
         score = std::max(score, d);
         Read(score_data, score);
-        Read(coin, score);
+        Read(coins, coin);
         goto start;
       }
     } else if (is_pouse) {
@@ -361,6 +364,7 @@ start:
         food.SetPos(food.generateRandomPos());
         snake.Add({120, 125});
         ++score;
+        ++coin;
       }
 
       if (snake_x > windows_width || snake_y > window_height || snake_x < 0 ||
@@ -379,8 +383,8 @@ start:
     int d = GetMaxScore("Data/score.txt");
     score = std::max(score, d);
     Read(score_data, score);
-    std::ofstream coin("Data/coin.txt", std::ios::app);
-    Read(all_score_data, score);
+    std::ofstream coins("Data/coin.txt", std::ios::app);
+    Read(coins, coin);
   }
   CloseAudioDevice();
   Exit();

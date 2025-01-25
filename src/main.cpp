@@ -50,6 +50,22 @@ int GetMaxScore(const std::string &filePath) {
   return maxScore;
 }
 
+int GetCoin(const std::string &filePath) {
+  std::ifstream inFile(filePath);
+  if (!inFile.is_open()) {
+    std::cerr << "Error: File is not open!\n";
+    return 0;
+  }
+
+  int coin = 0, score;
+  while (inFile >> score) {
+    coin = score;
+  }
+
+  inFile.close();
+  return coin;
+}
+
 void Exit() { CloseWindow(); }
 void Munu() { ClearBackground(DARKGREEN); }
 
@@ -86,6 +102,27 @@ int main() {
   Texture2D txt2 = LoadTextureFromImage(img2);
   UnloadImage(img2);
 
+  Image img3 = LoadImage("images/shop_button.png");
+  int orginalwidth = img3.width;
+  int orginalheight = img3.height;
+  float scale = 0.10;
+  int newwidth = static_cast<int>(orginalwidth * scale);
+  int newheight = static_cast<int>(orginalheight * scale);
+
+  ImageResize(&img3, newwidth, newheight);
+  Texture2D txt3 = LoadTextureFromImage(img3);
+  UnloadImage(img3);
+
+  Image img4 = LoadImage("images/speed_icon.png");
+  orginalwidth = img3.width;
+  orginalheight = img3.height;
+  scale = 4.0;
+  newwidth = static_cast<int>(orginalwidth * scale);
+  newheight = static_cast<int>(orginalheight * scale);
+
+  ImageResize(&img4, newwidth, newheight);
+  Texture2D txt4 = LoadTextureFromImage(img4);
+  UnloadImage(img4);
 
   Music music = LoadMusicStream("images/music.wav");
   Sound sound = LoadSound("images/kill.wav");
@@ -109,6 +146,7 @@ start:
     return -1;
   }
 
+  int coin = GetCoin("Data/coin.txt");
   bool StartGame = false;
   int high_score = GetEndHighScore();
   SetTargetFPS(60);
@@ -118,7 +156,9 @@ start:
   bool inscore_table = false;
   bool isgameplay = false;
   bool play_music = true;
-  // bool is_pouse = false;
+  bool is_pouse = false;
+  bool pause_to_menu_to_score = false;
+  bool in_shop = false;
   PlayMusicStream(music);
   while (!WindowShouldClose()) {
     if (play_music) {
@@ -140,6 +180,7 @@ start:
         if ((posMouse.x > 300 && posMouse.x < 500) &&
             (posMouse.y > 400 && posMouse.y < 450)) {
           inmenu = false;
+          play_music = false;
         } else if ((posMouse.x > 300 && posMouse.x < 500) &&
                    (posMouse.y > 470 && posMouse.y < 520)) {
           inscore_table = true;
@@ -147,6 +188,13 @@ start:
           // std::cout << "Score" << std::endl;
         } else if ((posMouse.x > 300 && posMouse.x < 500) &&
                    (posMouse.y > 540 && posMouse.y < 590)) {
+          std::ofstream all_score_data("Data/all_score.txt", std::ios::app);
+          Read(all_score_data, score);
+          int d = GetMaxScore("Data/score.txt");
+          score = std::max(score, d);
+          Read(score_data, score);
+          std::ofstream coin("Data/coin.txt", std::ios::app);
+          Read(all_score_data, score);
           Exit();
         } else if ((posMouse.x > 20 && posMouse.x < 60) &&
                    (posMouse.y > 740 && posMouse.y < 800)) {
@@ -156,7 +204,27 @@ start:
             play_music = true;
           }
           // std::cout << "Music stop or on" << std::endl;
+        } else if ((posMouse.x > 850 && posMouse.x < 900) &&
+                   (posMouse.y > 750 && posMouse.y < 800)) {
+          // std::cout << "Shop is active" << std::endl;
+          in_shop = true;
+          inmenu = false;
         }
+      }
+      Color Button_BACK_GROUND1 = BLACK;
+      Color Button_BACK_GROUND2 = BLACK;
+      Color Button_BACK_GROUND3 = BLACK;
+      Color Button_BACK_GROUND4 = BLACK;
+      if ((posMouse.x > 300 && posMouse.x < 500) &&
+          (posMouse.y > 400 && posMouse.y < 450)) {
+        Button_BACK_GROUND1 = RED;
+      } else if ((posMouse.x > 300 && posMouse.x < 500) &&
+                 (posMouse.y > 470 && posMouse.y < 520)) {
+        Button_BACK_GROUND2 = RED;
+        // std::cout << "Score" << std::endl;
+      } else if ((posMouse.x > 300 && posMouse.x < 500) &&
+                 (posMouse.y > 540 && posMouse.y < 590)) {
+        Button_BACK_GROUND3 = RED;
       }
       if (play_music) {
         DrawTexture(txt, 10, 750, WHITE);
@@ -164,15 +232,41 @@ start:
         DrawTexture(txt2, 10, 750, WHITE);
       }
 
-      DrawRectangle(300, 400, 200, 50, BLACK);
+      DrawTexture(txt3, 850, 750, WHITE);
+
+      std::string coin_massage = "Coin : " + std::to_string(coin);
+      DrawText(coin_massage.c_str(), 750, 20, 30, YELLOW);
+
+      DrawRectangle(300, 400, 200, 50, Button_BACK_GROUND1);
       DrawText("Start", 350, 415, 30, WHITE);
 
-      DrawRectangle(300, 470, 200, 50, BLACK);
+      DrawRectangle(300, 470, 200, 50, Button_BACK_GROUND2);
       DrawText("Scores", 350, 485, 30, WHITE);
 
-      DrawRectangle(300, 540, 200, 50, BLACK);
+      DrawRectangle(300, 540, 200, 50, Button_BACK_GROUND3);
       DrawText("QUIT", 350, 555, 30, WHITE);
-    } else if (inscore_table) {
+    } else if (in_shop) {
+      std::string coin_massage = "Coin : " + std::to_string(coin);
+      DrawText(coin_massage.c_str(), 750, 20, 30, YELLOW);
+      Color Back_Ground = BLACK;
+      Vector2 mousePos = GetMousePosition();
+      if (mousePos.x > 0 && mousePos.x < 130 && mousePos.y > 10 && mousePos.y < 210) {
+        Back_Ground = RED;
+        DrawText("100 COIN", 140, 105, 30, YELLOW);
+      }
+      if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+        if (mousePos.x > 0 && mousePos.x < 130 && mousePos.y > 10 && mousePos.y < 210) {
+          if (coin > 100) {
+            coin -= 100;
+            Back_Ground = GREEN;
+          } else {
+            PlaySound(sound);
+          }
+        } 
+      }
+      DrawRectangle(0, 10, 130, 200, Back_Ground);
+      DrawTexture(txt4, -35, 30, WHITE);
+    } else if (inscore_table && !pause_to_menu_to_score) {
       Vector2 mousePos = GetMousePosition();
       std::vector<std::string> scores = GetAllScore();
       std::string massage_high_score =
@@ -186,7 +280,7 @@ start:
         y += 20;
         if (y >= 840) {
           y = 150;
-          x += 20;
+          x += 40;
         }
       }
       DrawRectangle(0, 750, 200, 50, BLACK);
@@ -213,17 +307,39 @@ start:
         inmenu = true;
         isgameover = false;
         std::ofstream all_score_data("Data/all_score.txt", std::ios::app);
+        std::ofstream coin("Data/coin.txt", std::ios::app);
         Read(all_score_data, score);
         int d = GetMaxScore("Data/score.txt");
         score = std::max(score, d);
         Read(score_data, score);
+        Read(coin, score);
         goto start;
       }
+    } else if (is_pouse) {
+      ClearBackground(DARKBLUE);
+      Vector2 mousePos = GetMousePosition();
+
+      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        if ((mousePos.x > 300 && mousePos.x < 500) &&
+            (mousePos.y > 400 && mousePos.y < 450)) {
+          is_pouse = false;
+        } else if ((mousePos.x > 300 && mousePos.x < 500) &&
+                   (mousePos.y > 470 && mousePos.y < 520)) {
+          is_pouse = false;
+          pause_to_menu_to_score = true;
+          goto start;
+        }
+      }
+
+      DrawRectangle(300, 400, 200, 50, BLACK);
+      DrawText("RESUME", 340, 415, 30, WHITE);
+
+      DrawRectangle(300, 470, 200, 50, BLACK);
+      DrawText("MENU", 340, 485, 30, WHITE);
     } else {
       isgameplay = true;
-      if (IsKeyPressed(KEY_G)) {
-        Read(score_data, score);
-        isgameover = true;
+      if (IsKeyPressed(KEY_E)) {
+        is_pouse = true;
       }
 
       std::string Score = "Score : " + std::to_string(score);
@@ -263,6 +379,8 @@ start:
     int d = GetMaxScore("Data/score.txt");
     score = std::max(score, d);
     Read(score_data, score);
+    std::ofstream coin("Data/coin.txt", std::ios::app);
+    Read(all_score_data, score);
   }
   CloseAudioDevice();
   Exit();

@@ -77,9 +77,22 @@ std::vector<std::string> GetAllScore() {
 
 int main() {
   InitWindow(windows_width, window_height, "Snake");
+  InitAudioDevice();
+  Image img = LoadImage("images/music-on.png");
+  Texture2D txt = LoadTextureFromImage(img);
+  UnloadImage(img);
+
+  Image img2 = LoadImage("images/music-off.png");
+  Texture2D txt2 = LoadTextureFromImage(img2);
+  UnloadImage(img2);
+
+
+  Music music = LoadMusicStream("images/music.wav");
+  Sound sound = LoadSound("images/kill.wav");
+
+  Food food("images/food.png", 0.23);
 start:
   Snake snake({120, 120});
-  Food food("images/food.png", 0.23);
   int score = 0;
 
   if (!FileExists("Data/score.txt")) {
@@ -97,7 +110,6 @@ start:
   }
 
   bool StartGame = false;
-
   int high_score = GetEndHighScore();
   SetTargetFPS(60);
   srand(time(0));
@@ -105,9 +117,19 @@ start:
   bool inmenu = true;
   bool inscore_table = false;
   bool isgameplay = false;
+  bool play_music = true;
   // bool is_pouse = false;
-
+  PlayMusicStream(music);
   while (!WindowShouldClose()) {
+    if (play_music) {
+      UpdateMusicStream(music);
+
+      if (GetMusicTimePlayed(music) >= GetMusicTimeLength(music)) {
+        StopMusicStream(music);
+        PlayMusicStream(music);
+      }
+    }
+
     ClearBackground(DARKBLUE);
     BeginDrawing();
 
@@ -126,8 +148,22 @@ start:
         } else if ((posMouse.x > 300 && posMouse.x < 500) &&
                    (posMouse.y > 540 && posMouse.y < 590)) {
           Exit();
+        } else if ((posMouse.x > 20 && posMouse.x < 60) &&
+                   (posMouse.y > 740 && posMouse.y < 800)) {
+          if (play_music) {
+            play_music = false;
+          } else {
+            play_music = true;
+          }
+          // std::cout << "Music stop or on" << std::endl;
         }
       }
+      if (play_music) {
+        DrawTexture(txt, 10, 750, WHITE);
+      } else {
+        DrawTexture(txt2, 10, 750, WHITE);
+      }
+
       DrawRectangle(300, 400, 200, 50, BLACK);
       DrawText("Start", 350, 415, 30, WHITE);
 
@@ -213,6 +249,7 @@ start:
 
       if (snake_x > windows_width || snake_y > window_height || snake_x < 0 ||
           snake_y < 0) {
+        PlaySound(sound);
         isgameover = true;
       }
     }
@@ -227,5 +264,6 @@ start:
     score = std::max(score, d);
     Read(score_data, score);
   }
+  CloseAudioDevice();
   Exit();
 }

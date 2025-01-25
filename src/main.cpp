@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <csignal>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <ostream>
@@ -159,6 +160,7 @@ start:
   bool is_pouse = false;
   bool pause_to_menu_to_score = false;
   bool in_shop = false;
+  time_t now;
   PlayMusicStream(music);
   while (!WindowShouldClose()) {
     if (play_music) {
@@ -174,6 +176,11 @@ start:
     BeginDrawing();
 
     if (inmenu) {
+      time(&now);
+      char *time = std::ctime(&now);
+      std::string str_time = time;
+      std::string sub_time = str_time.substr(11, 8);
+      DrawText(sub_time.c_str(), 305, 750, 50, WHITE);
       DrawText("SNAKE", 200, 150, 150, WHITE);
       Vector2 posMouse = GetMousePosition();
       if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -256,7 +263,7 @@ start:
         Back_Ground = RED;
         DrawText("100 COIN", 140, 105, 30, YELLOW);
       }
-      if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         if (mousePos.x > 0 && mousePos.x < 130 && mousePos.y > 10 &&
             mousePos.y < 210) {
           if (coin > 100) {
@@ -266,6 +273,16 @@ start:
             PlaySound(sound);
           }
         }
+      }
+      DrawRectangle(0, 750, 200, 50, BLACK);
+      DrawText("BACK", 50, 765, 30, WHITE);
+      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+          (mousePos.x > 0 && mousePos.x < 200) &&
+          (mousePos.y > 750 && mousePos.y < 800)) {
+        inmenu = true;
+        std::ofstream coins("Data/coin.txt", std::ios::app);
+        Read(coins, coin);
+        in_shop = false;
       }
       DrawRectangle(0, 10, 130, 200, Back_Ground);
       DrawTexture(txt4, -35, 30, WHITE);

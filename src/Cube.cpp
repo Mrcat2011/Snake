@@ -1,5 +1,5 @@
 #include "../inc/Cube.hpp"
-#include <raylib.h>
+#include "raylib.h"
 
 Cube::Cube(Vector2 _pos) : pos(_pos), arr(None) {}
 Cube::~Cube() {}

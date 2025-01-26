@@ -1,38 +1,57 @@
-# Compiler and flags
-CXX = g++
-CXXFLAGS = -Iinc -std=c++17 -g
+CXX := g++
+CXXFLAGS := -Wall
+SRCDIR := src
+BUILDDIR := build
+LIBS := -lm -lraylib
 
-# Platform-specific linker flags
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S), Linux)
-    LDFLAGS = -lraylib -lm -ldl -lpthread
-else ifeq ($(UNAME_S), Windows_NT)
-    CXX = x86_64-w64-mingw32-g++
-    LDFLAGS = -Lwin-lib -lraylib -lopengl32 -lgdi32 -lwinmm -lkernel32 -luser32
-endif
+# List of source files
+SRCS := $(wildcard $(SRCDIR)/*.cpp)
 
-# Directories and files
-SOURCES = src/main.cpp src/Food.cpp src/Cube.cpp src/Snake.cpp src/Button.cpp
-OBJECTS = $(SOURCES:src/%.cpp=build/%.o)
-EXECUTABLE = game
+# Generate object file names from source file names
+OBJS := $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
 
 # Default target
-all: $(EXECUTABLE)
+all: game.exe
 
-# Rule to compile source files into object files
-build/%.o: src/%.cpp
-	@mkdir -p build
+# Rule to link object files into executable
+game.exe: $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LIBS) -o game.exe
+
+# Rule to compile each source file into object files
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(BUILDDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Rule to link object files into the executable
-$(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
+# Target for cheats
+cheat: CXXFLAGS += -D_METEOR_BUILD_WITH_CHEATS_
+cheat: game_cheat.exe
 
-# Clean target
+game_cheat.exe: $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LIBS) -o game_cheat.exe
+
+# Windows target setup
+ifeq ($(findstring windows,$(MAKECMDGOALS)),windows)
+    CXX := x86_64-w64-mingw32-g++
+    LIBS := -static -L./win-lib/ -lraylib -lraylibdll -lopengl32 -lgdi32 -lwinmm -lkernel32 -luser32
+
+    OBJS := $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%-win.o,$(SRCS))
+    MINGW_INCLUDE_DIR := /usr/x86_64-w64-mingw32/include
+
+    # Windows-specific rule to compile
+    $(BUILDDIR)/%-win.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(BUILDDIR)
+	$(CXX) $(CXXFLAGS) -I$(MINGW_INCLUDE_DIR) -static -c $< -o $@
+
+    # Windows-specific linking
+    game.exe: $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o game.exe $(LIBS)
+endif
+
+# Target for Windows builds
+windows: game.exe
+
+# Clean target to remove all files in build directory
 clean:
-	rm -rf build $(EXECUTABLE)
-
-# Run target
-run:
-	@$(MAKE) && ./$(EXECUTABLE) $(ARGS)
+	rm -f $(BUILDDIR)/*
+	rm -f game.exe
 

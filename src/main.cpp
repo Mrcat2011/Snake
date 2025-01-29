@@ -70,16 +70,9 @@ int GetCoin(const std::string &filePath) {
 void Exit() { CloseWindow(); }
 void Munu() { ClearBackground(DARKGREEN); }
 
-Button button("images/button.png", {180, 420}, 0.25);
 
 void GameOver() {
   DrawText("Game Over", 200, 400, 100, GREEN);
-  button.Draw();
-  Vector2 mousePos = GetMousePosition();
-  bool MousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
-  if (button.isclick(mousePos, MousePressed)) {
-    isgameover = false;
-  }
 }
 
 std::vector<std::string> GetAllScore() {
@@ -93,6 +86,7 @@ std::vector<std::string> GetAllScore() {
 }
 
 int main() {
+  SetTraceLogLevel(LOG_NONE);
   InitWindow(windows_width, window_height, "Snake");
   InitAudioDevice();
   Image img = LoadImage("images/music-on.png");
@@ -127,6 +121,7 @@ int main() {
 
   Music music = LoadMusicStream("images/music.wav");
   Sound sound = LoadSound("images/kill.wav");
+  Sound sound_eat = LoadSound("images/eat.mp3");
 
   Food food("images/food.png", 0.23);
 start:
@@ -380,6 +375,7 @@ start:
           (snake_y >= food_y - 20 && snake_y <= food_y + 20)) {
         food.SetPos(food.generateRandomPos());
         snake.Add({120, 125});
+        PlaySound(sound_eat);
         ++score;
         ++coin;
       }

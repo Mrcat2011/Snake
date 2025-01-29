@@ -16,7 +16,11 @@ void Cube::Move() {
   }
 }
 
-void Cube::Draw() { DrawRectangle(pos.x, pos.y, 20, 20, BLACK); }
+void Cube::Draw() {
+   Rectangle segment = Rectangle{pos.x, pos.y, 20, 20};
+   //DrawRectangle(pos.x, pos.y, 20, 20, BLACK);
+   DrawRectangleRounded(segment, 0.5, 6, BLACK);
+}
 
 void Cube::Update() {
   if (IsKeyPressed(KEY_W)) {

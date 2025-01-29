@@ -1,5 +1,6 @@
 #include "../inc/Snake.hpp"
 #include "raylib.h"
+#include <iostream>
 
 Snake::Snake(Vector2 pos_cub1) {
   Cube head(pos_cub1);
@@ -24,6 +25,7 @@ void Snake::snakeUpdate() {
     //     if (headPos.x == snake[i].getPosition().x && headPos.y ==
     //     snake[i].getPosition().y) {
     //         CloseWindow();
+    //         std::cout << "It is error" << std::endl;
     //         return;
     //     }
     // }
